@@ -87,7 +87,7 @@ void	Cgi::m_set_argv()
 {
 	std::string cgi_path = __cwd + "/php-cgi"; //cgi exec 변경
 	if (__request.location->cgi == ".bla")
-		cgi_path = __cwd + "/cgi-bin/cgi_tester";
+		cgi_path = __cwd + "/cgi_tester";
 	__argv[0] = new char[cgi_path.size() + 1];
 	strcpy(__argv[0], cgi_path.c_str());
 	__argv[0][cgi_path.size()] = 0;
@@ -127,15 +127,11 @@ int		Cgi::m_cgi_exec()
 		close(pipe_in[READ]);
 		close(pipe_out[WRITE]);
 		execve(__argv[0], __argv, __env);
+		std::cout << "500" << std::endl;
 		exit(1);
 	}
 	close(pipe_in[READ]);
 	close(pipe_out[WRITE]);
-	// 아래 구문을 event처리시 확인(오류시 리턴값 때문), pid 저장 필요??
-	// int status;
-	// waitpid(pid, &status, 0);
-	// if (WIFEXITED(status) && WEXITSTATUS(status)) //wifexited:0이 아니면 자식 정상종료, wexitstatus:자식 exit반환값
-	// 	return ("500");
 	change_events(__cn.change_list, pipe_in[WRITE], EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL); // write가 더이상 필요한가??
 	change_events(__cn.change_list, pipe_out[READ], EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	Client c1;
@@ -148,7 +144,6 @@ int		Cgi::m_cgi_exec()
 	__cn.clients.insert(std::make_pair(pipe_in[WRITE], c1));
 	__cn.clients.insert(std::make_pair(pipe_out[READ], c2));
 	__cn.clients[__cn.curr_event->ident]._stage = WAIT;
-	std::cout << "@@@@@@ tmp buf in cgi : " << PRPL << __cn.clients[__cn.curr_event->ident].tmp_buffer << NC << std::endl;
 	m_delete();
 	return (0);
 }
