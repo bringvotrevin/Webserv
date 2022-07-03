@@ -48,7 +48,10 @@ std::string Cgi::m_get_filepath()
 {
 	if (m_get_method(__request.method) == "POST" ||  __request.url.find('?') == std::string::npos)
 		return (__request.url);
-	return (__request.url.substr(0, __request.url.find_last_of('?')));
+	std::string root = __request.location->root;
+	if (root[0] == '.')
+		root = root.substr(1);
+	return (root + __request.path);
 }
 
 std::string Cgi::m_get_query_string()
