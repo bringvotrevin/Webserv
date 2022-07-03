@@ -46,7 +46,7 @@ std::string	Cgi::m_get_cwd()
 
 std::string Cgi::m_get_filepath()
 {
-	if (m_get_method(__request.method) == "POST" ||  __request.url.find('?') == std::string::npos)
+	if (m_get_method(__request.method) == "POST")
 		return (__request.url);
 	std::string root = __request.location->root;
 	if (root[0] == '.')
@@ -117,6 +117,8 @@ int		Cgi::m_cgi_exec()
 
 	m_set_env();
 	m_set_argv();
+	for(int i = 0; __env[i] != 0; i++)
+		std::cout << __env[i] << std::endl;
 	if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1)
 		return (500);
 	if ((pid = fork()) == -1)
