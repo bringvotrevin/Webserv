@@ -144,7 +144,7 @@ void		Config::m_parse_clent_max_body_size(std::list<std::string>& line, Location
 	if (line.size() < 2)
 		throw std::invalid_argument("Invalid config file : The number of client_max_body_size arguments is incorrect");
 	int size = atoi(line.back().c_str());
-	if (size < 256 || size > 1000000)
+	if (size < 256 || size > 100000001)
 		throw std::invalid_argument("Invalid config file : Too many or too few size");
 	loc.client_max_body_size = size;
 }

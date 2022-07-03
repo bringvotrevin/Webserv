@@ -14,11 +14,11 @@ static int		parse_method(std::string str)
 	for(int i = 0; i < 9; i++)
 	{
 		if (methods[i] == str)
-			method |= bit;
+			method = bit;
 		bit <<= 1;
 	}
 	if (method & 0x01 << 4)
-		method |= 0x01 << 1;
+		method = 0x01 << 1;
 	return (method);
 }
 
@@ -115,7 +115,7 @@ std::list<std::string>		split_line(std::string	origin)
 size_t		unchunk_data(std::list<std::string> list, std::string& body, int &status_code)
 {
 	size_t			length_size;
-	while(!list.empty())
+	while(list.size() > 1)
 	{
 		std::stringstream	iss(list.front());
 		list.pop_front();
