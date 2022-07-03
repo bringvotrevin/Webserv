@@ -293,6 +293,13 @@ void response(Connect& cn, Client& client, Request& request)
 			client._stage = SEND_RESPONSE;
 			return ;
 		}
+		struct stat sb;
+		stat(client.rs.file_path.c_str(), &sb);
+		if (sb.st_size == 0)
+		{
+			client.is_io_done = true;
+			return ;
+		}
 		std::cout << file_fd << " : " << client.rs.file_path << std::endl;
 		change_events(cn.change_list, file_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		Client c1;
@@ -311,6 +318,15 @@ void response(Connect& cn, Client& client, Request& request)
 			client.tmp_buffer.clear();
 			return ;
 		}
+		else if (request.is_cgi && request.location->cgi == ".bla" && !request.status_code)
+		{
+			client.respond_msg = "HTTP/1.1 200 OK\r\n";
+			client.respond_msg += "Content-length: 0\r\n";
+			client.respond_msg += client.tmp_buffer;
+			client.is_io_done = false;
+			client._stage = SEND_RESPONSE;
+			return ;
+		}
 		else if (request.is_cgi && !request.status_code)
 		{
 			client.respond_msg = "HTTP/1.1 200 OK\r\n";
@@ -321,7 +337,10 @@ void response(Connect& cn, Client& client, Request& request)
 		}
 		client.rs.body = client.tmp_buffer;
 		client.respond_msg = client.rs.header + "\r\n";
-		client.respond_msg += "Content-Length: " + ft_itoa(client.rs.body.size());
+		std::string size(ft_itoa(client.rs.body.size()));
+		if (size == "")
+			size = "0";
+		client.respond_msg += "Content-Length: " + size;
 		client.respond_msg += "\r\n\r\n";
 		client.respond_msg += client.rs.body;
 		client.is_io_done = false;

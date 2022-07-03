@@ -17,6 +17,8 @@ static int		parse_method(std::string str)
 			method |= bit;
 		bit <<= 1;
 	}
+	if (method & 0x01 << 4)
+		method |= 0x01 << 1;
 	return (method);
 }
 

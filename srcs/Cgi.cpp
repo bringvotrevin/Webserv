@@ -117,8 +117,6 @@ int		Cgi::m_cgi_exec()
 
 	m_set_env();
 	m_set_argv();
-	for(int i = 0; __env[i] != 0; i++)
-		std::cout << __env[i] << std::endl;
 	if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1)
 		return (500);
 	if ((pid = fork()) == -1)
