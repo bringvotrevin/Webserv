@@ -84,21 +84,41 @@ static void write_data_to_client(Connect& cn)
     if (cn.clients[cn.curr_event->ident].respond_msg != "")
     {
         int n;
-        if ((n = write(cn.curr_event->ident, cn.clients[cn.curr_event->ident].respond_msg.c_str(),
-                cn.clients[cn.curr_event->ident].respond_msg.size()) <= 0))
+        if (cn.clients[cn.curr_event->ident].respond_msg.size() > cn.clients[cn.curr_event->ident].rs.index + 524288)
         {
-            if (n < 0)
-                std::cerr << "client write error!" << std::endl;
-            disconnect_client(cn.curr_event->ident, cn.clients);
+            n = write(cn.curr_event->ident, cn.clients[cn.curr_event->ident].respond_msg.c_str() + cn.clients[cn.curr_event->ident].rs.index,
+                    524288);
+            if (n <= 0)
+            {
+                if (n < 0)
+                    std::cerr << "client write error!" << std::endl;
+                disconnect_client(cn.curr_event->ident, cn.clients);
+            }
+            else
+            {
+                std::cout << "client " << cn.curr_event->ident << " write data, size : " << n << std::endl;
+                cn.clients[cn.curr_event->ident].rs.index += n;
+            }
         }
         else
         {
-            std::cout << "client " << cn.curr_event->ident << " write data"<< std::endl;
-            //std::cout << cn.clients[cn.curr_event->ident].respond_msg << std::endl;
-            if (cn.clients[cn.curr_event->ident].keep == 0)
+            n = write(cn.curr_event->ident, cn.clients[cn.curr_event->ident].respond_msg.c_str() + cn.clients[cn.curr_event->ident].rs.index,
+                    cn.clients[cn.curr_event->ident].respond_msg.size() - cn.clients[cn.curr_event->ident].rs.index);
+            if (n <= 0)
+            {
+                if (n < 0)
+                    std::cerr << "client write error!" << std::endl;
                 disconnect_client(cn.curr_event->ident, cn.clients);
+            }
             else
-                cn.clients[cn.curr_event->ident]._stage = CLOSE;
+            {
+                std::cout << "client " << cn.curr_event->ident << " write data, size : " << n << std::endl;
+                //std::cout << cn.clients[cn.curr_event->ident].respond_msg << std::endl;
+                if (cn.clients[cn.curr_event->ident].keep == 0)
+                    disconnect_client(cn.curr_event->ident, cn.clients);
+                else
+                    cn.clients[cn.curr_event->ident]._stage = CLOSE;
+            }
         }
     }
 }

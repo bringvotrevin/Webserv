@@ -6,11 +6,14 @@
 #include "Connect.hpp"
 #include "utils.hpp"
 
+Response::Response() : file_path(""), header(""), body(""), index(0) {}
+
 void Response::clear()
 {
 	body.clear();
 	file_path.clear();
 	header.clear();
+	index = 0;
 }
 
 static std::string make_hyper_link(Request& request, std::string path)
@@ -323,8 +326,8 @@ void response(Connect& cn, Client& client, Request& request)
 			client.rs.body = client.tmp_buffer.substr(client.tmp_buffer.find("\r\n\r\n") + 4);
 			client.respond_msg = "HTTP/1.1 200 OK\r\n";
 			client.respond_msg += "Content-length: " + ft_itoa2(client.rs.body.size());
-			client.respond_msg += "\r\n\r\n";
-			client.respond_msg += client.rs.body;
+			client.respond_msg += "\r\n";
+			client.respond_msg += client.tmp_buffer;
 			client.is_io_done = false;
 			client._stage = SEND_RESPONSE;
 			return ;
