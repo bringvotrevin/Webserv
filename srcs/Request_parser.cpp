@@ -133,9 +133,9 @@ void		Request_parser::m_unchunk_after_body_clear(bool& is_enough_body_length)
 	std::list<std::string>		list = split_line(request.body);
 	request.body.clear();
 	size_t last_length = unchunk_data(list, request.body, request.status_code);
-	
 	if (last_length != 0)
 		is_enough_body_length = false;
+	request.content_length = request.body.size();
 }
 
 void	Request_parser::parse_request(Client& client)
@@ -283,6 +283,7 @@ void request_msg_parsing(Client& client)
 			size_t last_length = unchunk_data(list, client.rq.body, client.rq.status_code);
 			if (client.rq.status_code || last_length == 0)
 				client._stage = SET_RESOURCE;
+			client.rq.content_length = client.rq.body.size();
 			return ;
 		}
 		client.rq.body = body;
