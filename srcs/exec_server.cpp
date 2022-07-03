@@ -152,6 +152,7 @@ static void file_and_pipe_read(Connect& cn)
                 cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.status_code = 500;
             }
         }
+        lseek(cn.curr_event->ident, 0, SEEK_SET);
         char buf[1025];
         int n = 1;
         while (n)
@@ -201,24 +202,17 @@ static void file_and_pipe_write(Connect& cn)
         std::cout << "STAGE CGI_WRITE" << std::endl;
     else if (cn.clients[cn.curr_event->ident]._stage == FILE_WRITE)
         std::cout << "STAGE FILE_WRITE" << std::endl;
-    std::cout << "write : " << tmp.size() << std::endl;
-    unsigned long n = 0;
-    unsigned long k = 1048576;
-    while (n < tmp.size())
+    int n = write(cn.curr_event->ident, tmp.c_str(), tmp.size());
+    lseek(cn.curr_event->ident, 0, SEEK_SET);
+    if (n <= 0)
     {
-        k = n + 1048576 < tmp.size() ? 1048576 : tmp.size() - n;
-        std::cout << k << std::endl;
-        n += write(cn.curr_event->ident, tmp.c_str() + n, k);
-        if (n <= 0)
+        if (!(n == 0 && cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.method == GET))
         {
-            if (!(n == 0 && cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.method == GET))
-            {
-                std::cerr << "file write error! : " << n << std::endl;
-                cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.status_code = 500;
-                cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
-                disconnect_client(cn.curr_event->ident, cn.clients);
-                return ;
-            }
+            std::cerr << "file write error! : " << n << std::endl;
+            cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.status_code = 500;
+            cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
+            disconnect_client(cn.curr_event->ident, cn.clients);
+            return ;
         }
     }
     cn.clients[cn.clients[cn.curr_event->ident].origin_fd].tmp_buffer.clear();

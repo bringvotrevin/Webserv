@@ -18,7 +18,7 @@ Cgi::Cgi(Connect& connect, Client& client)
 	__requested_uri = __cwd + __filepath;
 	__query_string = m_get_query_string();
 	__v_envlist[0] = "REQUEST_METHOD=" + m_get_method(__request.method);
-	__v_envlist[1] = "CONTENT_LENGTH=" + ft_itoa(__request.content_length);
+	__v_envlist[1] = "CONTENT_LENGTH=" + ft_itoa2(__request.content_length);
 	__v_envlist[2] = "CONTENT_TYPE=" +  __request.content_type; //request헤더 content_type 추가하기
 	__v_envlist[3] = "GATEWAY_INTERFACE=CGI/1.1";
 	__v_envlist[4] = "DOCUMENT_ROOT=" + __cwd;
@@ -111,32 +111,26 @@ void	Cgi::m_delete()
 
 int		Cgi::m_cgi_exec()
 {
-	int		pipe_in[2];
-	int 	pipe_out[2];
+	FILE *fIn = tmpfile();
+    FILE *fOut = tmpfile();
+	int in_fd = fileno(fIn);
+    int out_fd = fileno(fOut);
 	pid_t	pid;
 
 	m_set_env();
 	m_set_argv();
-	if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1)
-		return (500);
 	if ((pid = fork()) == -1)
 		return (500);
 	else if (pid == 0)
 	{
-		close(pipe_in[WRITE]);
-		close(pipe_out[READ]);
-		dup2(pipe_in[READ], STDIN_FILENO);
-		dup2(pipe_out[WRITE], STDOUT_FILENO);
-		close(pipe_in[READ]);
-		close(pipe_out[WRITE]);
+		dup2(in_fd, STDIN_FILENO);
+		dup2(out_fd, STDOUT_FILENO);
 		execve(__argv[0], __argv, __env);
 		std::cout << "500" << std::endl;
 		exit(1);
 	}
-	close(pipe_in[READ]);
-	close(pipe_out[WRITE]);
-	change_events(__cn.change_list, pipe_in[WRITE], EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL); // write가 더이상 필요한가??
-	change_events(__cn.change_list, pipe_out[READ], EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	change_events(__cn.change_list, in_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL); // write가 더이상 필요한가??
+	change_events(__cn.change_list, out_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	Client c1;
 	Client c2;
 	c1.origin_fd = __cn.curr_event->ident; //현재 클라이언트 socket fd
@@ -144,8 +138,8 @@ int		Cgi::m_cgi_exec()
 	c2.cgi_pid = pid;
 	c1._stage = CGI_WRITE;
 	c2._stage = CGI_READ;
-	__cn.clients.insert(std::make_pair(pipe_in[WRITE], c1));
-	__cn.clients.insert(std::make_pair(pipe_out[READ], c2));
+	__cn.clients.insert(std::make_pair(in_fd, c1));
+	__cn.clients.insert(std::make_pair(out_fd, c2));
 	__cn.clients[__cn.curr_event->ident]._stage = WAIT;
 	m_delete();
 	return (0);
