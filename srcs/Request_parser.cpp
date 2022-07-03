@@ -269,16 +269,29 @@ void	Request_parser::m_parse_request_header (Client& client)
 		client._stage = SET_RESOURCE; // FLAG처리 이상이 있으면 stage그대로 없으면 변경 3번째거로로 SET_RESOURCE
 }
 
+void split_line2(std::string	origin, std::list<std::string>& list)
+{
+	size_t			start = origin.find("\r\n\r\n") + 4;
+	size_t 			pos = origin.find("\r\n", start);
+
+	while (start != std::string::npos && pos != std::string::npos)
+	{
+		std::string		line = origin.substr(start, pos - start);
+		list.push_back(line);
+		start = pos + 2;
+		pos = origin.find("\r\n", start);
+	}
+}
+
+
 void request_msg_parsing(Client& client)
 {
 	if(client.rq.content_length)
 	{
-		size_t			body_start_pos = client.request_msg.find("\r\n\r\n") + 4;
-		std::string		body = client.request_msg.substr(body_start_pos);
-		
 		if (client.rq.is_chunk_body)
 		{
-			std::list<std::string> list = split_line(body);
+			std::list<std::string> list;
+			split_line2(client.request_msg, list);
 			client.rq.body.clear();
 			size_t last_length = unchunk_data(list, client.rq.body, client.rq.status_code);
 			if (client.rq.status_code || last_length == 0)
@@ -286,11 +299,11 @@ void request_msg_parsing(Client& client)
 			client.rq.content_length = client.rq.body.size();
 			return ;
 		}
-		client.rq.body = body;
-		if (body.size() >= static_cast<size_t>(client.rq.content_length))
+		client.rq.body = client.request_msg.substr(client.request_msg.find("\r\n\r\n") + 4);
+		if (client.rq.body.size() >= static_cast<size_t>(client.rq.content_length))
 			client._stage = SET_RESOURCE;
-		if (body.size() > static_cast<size_t>(client.rq.content_length))
-			client.rq.body = body.substr(0, client.rq.content_length);
+		if (client.rq.body.size() > static_cast<size_t>(client.rq.content_length))
+			client.rq.body = client.rq.body.substr(0, client.rq.content_length);
 		return ;
 	}
 	// 초기 파싱

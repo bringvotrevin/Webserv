@@ -152,7 +152,6 @@ static void method_post(Connect& cn, Request& request, Client& client)
 	struct stat		status;
 	std::string path = request.location->root + request.path;
 
-	std::cout << "!!!!! \n\n" << request.is_directory << " : " << request.content_length << " : " << request.location->client_max_body_size << " : " << request.is_cgi << std::endl;
 	if (request.is_directory) // 디렉토리라면
 		request.status_code = 405;
 	else if (!request.content_length)	// POST 요청에는 반드시 body 및 content-length가 필요함, 없을 시 411 length required

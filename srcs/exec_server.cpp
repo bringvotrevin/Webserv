@@ -94,7 +94,7 @@ static void write_data_to_client(Connect& cn)
         else
         {
             std::cout << "client " << cn.curr_event->ident << " write data"<< std::endl;
-            std::cout << cn.clients[cn.curr_event->ident].respond_msg << std::endl;
+            //std::cout << cn.clients[cn.curr_event->ident].respond_msg << std::endl;
             if (cn.clients[cn.curr_event->ident].keep == 0)
                 disconnect_client(cn.curr_event->ident, cn.clients);
             else
@@ -131,7 +131,7 @@ static void read_data_from_client(Connect& cn)
     {
         buf[n] = 0;
         cn.clients[cn.curr_event->ident].request_msg.append(buf, n);
-        std::cout << YLLW "client " << cn.curr_event->ident << " msg : " NC << cn.clients[cn.curr_event->ident].request_msg << std::endl;
+        std::cout << YLLW "client " << cn.curr_event->ident << " read: " NC << " : " << cn.clients[cn.curr_event->ident].request_msg.size() << std::endl;
     }
 }
 
@@ -201,16 +201,24 @@ static void file_and_pipe_write(Connect& cn)
         std::cout << "STAGE CGI_WRITE" << std::endl;
     else if (cn.clients[cn.curr_event->ident]._stage == FILE_WRITE)
         std::cout << "STAGE FILE_WRITE" << std::endl;
-    int n = write(cn.curr_event->ident, tmp.c_str(), tmp.size());
-    if (n <= 0)
+    std::cout << "write : " << tmp.size() << std::endl;
+    unsigned long n = 0;
+    unsigned long k = 1048576;
+    while (n < tmp.size())
     {
-        if (!(n == 0 && cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.method == GET))
+        k = n + 1048576 < tmp.size() ? 1048576 : tmp.size() - n;
+        std::cout << k << std::endl;
+        n += write(cn.curr_event->ident, tmp.c_str() + n, k);
+        if (n <= 0)
         {
-            std::cerr << "file write error! : " << n << std::endl;
-            cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.status_code = 500;
-            cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
-            disconnect_client(cn.curr_event->ident, cn.clients);
-            return ;
+            if (!(n == 0 && cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.method == GET))
+            {
+                std::cerr << "file write error! : " << n << std::endl;
+                cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.status_code = 500;
+                cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
+                disconnect_client(cn.curr_event->ident, cn.clients);
+                return ;
+            }
         }
     }
     cn.clients[cn.clients[cn.curr_event->ident].origin_fd].tmp_buffer.clear();
