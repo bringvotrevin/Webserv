@@ -31,6 +31,7 @@ struct Client
 	pid_t cgi_pid;
     Stage _stage;
 	Server *server;
+	FILE	*file_stream;
 	Request rq;
 	Response rs;
     std::string request_msg;

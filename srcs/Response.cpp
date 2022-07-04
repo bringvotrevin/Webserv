@@ -182,6 +182,7 @@ static void method_post(Connect& cn, Request& request, Client& client)
 			client._stage = SET_RESOURCE;
 			return ;
 		}
+		fcntl(file_fd, F_SETFL, O_NONBLOCK);
 		std::cout << file_fd << " : " << path << std::endl;
 		change_events(cn.change_list, file_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		Client c1;
@@ -303,6 +304,7 @@ void response(Connect& cn, Client& client, Request& request)
 			client.is_io_done = true;
 			return ;
 		}
+		fcntl(file_fd, F_SETFL, O_NONBLOCK);
 		std::cout << file_fd << " : " << client.rs.file_path << std::endl;
 		change_events(cn.change_list, file_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		Client c1;

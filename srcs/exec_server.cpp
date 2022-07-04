@@ -177,6 +177,10 @@ static void file_and_pipe_read(Connect& cn)
             {
                 std::cerr << "cgi wait error!" << std::endl;
                 cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.status_code = 500;
+                cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
+                fclose(cn.clients[cn.curr_event->ident].file_stream);
+                cn.clients.erase(cn.curr_event->ident);
+                return ;
             }
         }
         lseek(cn.curr_event->ident, 0, SEEK_SET);
@@ -190,14 +194,16 @@ static void file_and_pipe_read(Connect& cn)
                 std::cerr << "file & pipe read error!" << std::endl;
                 cn.clients[cn.clients[cn.curr_event->ident].origin_fd].rq.status_code = 500;
                 cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
-                disconnect_client(cn.curr_event->ident, cn.clients);
+                fclose(cn.clients[cn.curr_event->ident].file_stream);
+                cn.clients.erase(cn.curr_event->ident);
                 return ;
             }
             buf[n] = 0;
             cn.clients[cn.clients[cn.curr_event->ident].origin_fd].tmp_buffer.append(buf, n);
         }
         cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
-        disconnect_client(cn.curr_event->ident, cn.clients);
+        fclose(cn.clients[cn.curr_event->ident].file_stream);
+        cn.clients.erase(cn.curr_event->ident);
     }
     else if (cn.clients[cn.curr_event->ident]._stage == FILE_READ)
     {
@@ -243,9 +249,14 @@ static void file_and_pipe_write(Connect& cn)
         }
     }
     fsync(cn.curr_event->ident);
+    if (cn.clients[cn.curr_event->ident]._stage == CGI_WRITE)
+    {
+        cn.clients[cn.clients[cn.curr_event->ident].origin_fd].tmp_buffer.clear();
+        fclose(cn.clients[cn.curr_event->ident].file_stream);
+        cn.clients.erase(cn.curr_event->ident);
+    }
     cn.clients[cn.clients[cn.curr_event->ident].origin_fd].tmp_buffer.clear();
-    if (cn.clients[cn.curr_event->ident]._stage == FILE_WRITE)
-        cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
+    cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
     disconnect_client(cn.curr_event->ident, cn.clients);
 }
 

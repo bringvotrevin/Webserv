@@ -116,6 +116,8 @@ int		Cgi::m_cgi_exec()
     FILE *fOut = tmpfile();
 	int in_fd = fileno(fIn);
     int out_fd = fileno(fOut);
+	fcntl(in_fd, F_SETFL, O_NONBLOCK);
+    fcntl(out_fd, F_SETFL, O_NONBLOCK);
 	pid_t	pid;
 
 	m_set_env();
@@ -137,6 +139,8 @@ int		Cgi::m_cgi_exec()
 	c1.origin_fd = __cn.curr_event->ident; //현재 클라이언트 socket fd
 	c2.origin_fd = __cn.curr_event->ident; //현재 클라이언트 socket fd
 	c2.cgi_pid = pid;
+	c1.file_stream = fIn;
+	c2.file_stream = fOut;
 	c1._stage = CGI_WRITE;
 	c2._stage = CGI_READ;
 	__cn.clients.insert(std::make_pair(in_fd, c1));
