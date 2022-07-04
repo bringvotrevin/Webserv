@@ -312,7 +312,8 @@ void		Config::open_file(std::string& conf_name)
 	fs.open(conf_name, std::ios::in);
 	if (!fs.is_open())
 	{
-		std::string conf_root = getcwd(nullptr, 1000);
+		char buf[1000];
+		std::string conf_root = getcwd(buf, 1000);
 		conf_root += "/config/" + conf_name;
 		fs.open(conf_root);
 		if (!fs.is_open())
