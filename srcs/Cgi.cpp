@@ -11,7 +11,7 @@
 #define AQUA "\033[36m"
 
 Cgi::Cgi(Connect& connect, Client& client)
-	: __cn(connect), __request(client.rq), __v_envlist(std::vector<std::string>(15, ""))
+	: __cn(connect), __request(client.rq), __v_envlist(std::vector<std::string>(16, ""))
 {
 	__cwd = m_get_cwd();
 	__filepath = m_get_filepath();
@@ -32,6 +32,7 @@ Cgi::Cgi(Connect& connect, Client& client)
 	__v_envlist[12] = "REQUEST_URI=" + __requested_uri;
 	__v_envlist[13] = "PATH_INFO=" + __requested_uri;
 	__v_envlist[14] = "SCRIPT_FILENAME=" + __requested_uri;
+	__v_envlist[14] = "X-Secret-Header-For-Test=1";
 	client.tmp_buffer = __request.body;
 }
 

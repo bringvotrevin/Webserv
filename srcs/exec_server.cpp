@@ -29,7 +29,7 @@ static int set_server(Server& server, int& reuse)
 		throw std::runtime_error("setsockopt error\n" + std::string(strerror(errno)));
     if (bind(server_socket, reinterpret_cast<struct sockaddr*>(&server_addr), sizeof(server_addr)) == -1)
 		throw std::runtime_error("bind() error\n" + std::string(strerror(errno)));
-    if (listen(server_socket, 1024) == -1)
+    if (listen(server_socket, 100000) == -1)
 		throw std::runtime_error("listen() error\n" + std::string(strerror(errno)));
     fcntl(server_socket, F_SETFL, O_NONBLOCK);
 	return (server_socket);
@@ -96,8 +96,8 @@ static void write_data_to_client(Connect& cn)
             }
             else
             {
-                std::cout << "client " << cn.curr_event->ident << " write data, size : " << n << std::endl;
                 cn.clients[cn.curr_event->ident].rs.index += n;
+                std::cout << "client " << cn.curr_event->ident << " write data, size : " << n << ", index : " << cn.clients[cn.curr_event->ident].rs.index << std::endl;
             }
         }
         else
@@ -112,14 +112,19 @@ static void write_data_to_client(Connect& cn)
             }
             else
             {
-                std::cout << "client " << cn.curr_event->ident << " write data, size : " << n << std::endl;
-                //std::cout << cn.clients[cn.curr_event->ident].respond_msg << std::endl;
-                if (cn.clients[cn.curr_event->ident].keep == 0)
-                    disconnect_client(cn.curr_event->ident, cn.clients);
-                else
-                    cn.clients[cn.curr_event->ident]._stage = CLOSE;
+                cn.clients[cn.curr_event->ident].rs.index += n;
+                std::cout << "client " << cn.curr_event->ident << " write data, size : " << n << ", index : " << cn.clients[cn.curr_event->ident].rs.index << std::endl;
+                std::cout << cn.clients[cn.curr_event->ident].respond_msg << std::endl;
+                if (cn.clients[cn.curr_event->ident].rs.index == cn.clients[cn.curr_event->ident].respond_msg.size())
+                {
+                    if (cn.clients[cn.curr_event->ident].keep == 0)
+                        disconnect_client(cn.curr_event->ident, cn.clients);
+                    else
+                        cn.clients[cn.curr_event->ident]._stage = CLOSE;
+                }
             }
         }
+        std::cout << "STAGE END" << std::endl;
     }
 }
 
@@ -235,6 +240,7 @@ static void file_and_pipe_write(Connect& cn)
             return ;
         }
     }
+    fsync(cn.curr_event->ident);
     cn.clients[cn.clients[cn.curr_event->ident].origin_fd].tmp_buffer.clear();
     if (cn.clients[cn.curr_event->ident]._stage == FILE_WRITE)
         cn.clients[cn.clients[cn.curr_event->ident].origin_fd]._stage = SET_RESOURCE;
