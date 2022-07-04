@@ -155,12 +155,12 @@ static void method_post(Connect& cn, Request& request, Client& client)
 	struct stat		status;
 	std::string path = request.location->root + request.path;
 
-	if (request.is_directory) // 디렉토리라면
-		request.status_code = 405;
-	else if (!request.content_length)	// POST 요청에는 반드시 body 및 content-length가 필요함, 없을 시 411 length required
-		request.status_code = 411;
+	if (!request.content_length)	// POST 요청에는 반드시 body 및 content-length가 필요함, 없을 시 411 length required
+		request.status_code = 204;
 	else if (request.content_length > request.location->client_max_body_size) // 우리가 허용한 body를 넘을 때
 		request.status_code = 413;
+	else if (request.is_directory) // 디렉토리라면
+		request.status_code = 204;
 	else if (request.is_cgi) // cgi 라면
 	{
 		Cgi cgi(cn, client);
@@ -266,8 +266,8 @@ static void make_redirection(Connect& cn, Client& client)
 
 void response(Connect& cn, Client& client, Request& request)
 {
-	if (cn.clients[cn.curr_event->ident]._stage == SET_RESOURCE)
-		std::cout << "STAGE SET_RESOURCE" << std::endl; 
+	// if (cn.clients[cn.curr_event->ident]._stage == SET_RESOURCE)
+	// 	std::cout << "STAGE SET_RESOURCE" << std::endl; 
 	if (!client.is_io_done)
 	{
 		if (!request.status_code)

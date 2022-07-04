@@ -79,11 +79,14 @@ static void event_error(Connect& cn)
 
 static void write_data_to_client(Connect& cn)
 {
-    if (cn.clients[cn.curr_event->ident]._stage == SEND_RESPONSE)
-        std::cout << "STAGE SEND_RESPONSE" << std::endl; 
+    //if (cn.clients[cn.curr_event->ident]._stage == SEND_RESPONSE)
+        //std::cout << "STAGE SEND_RESPONSE" << std::endl; 
     if (cn.clients[cn.curr_event->ident].respond_msg != "")
     {
         int n;
+        cn.clients[cn.curr_event->ident].request_msg.clear();
+        cn.clients[cn.curr_event->ident].rq.body.clear();
+        cn.clients[cn.curr_event->ident].rs.body.clear();
         if (cn.clients[cn.curr_event->ident].respond_msg.size() > cn.clients[cn.curr_event->ident].rs.index + 524288)
         {
             n = write(cn.curr_event->ident, cn.clients[cn.curr_event->ident].respond_msg.c_str() + cn.clients[cn.curr_event->ident].rs.index,
@@ -113,8 +116,7 @@ static void write_data_to_client(Connect& cn)
             else
             {
                 cn.clients[cn.curr_event->ident].rs.index += n;
-                std::cout << "client " << cn.curr_event->ident << " write data, size : " << n << ", index : " << cn.clients[cn.curr_event->ident].rs.index << std::endl;
-                std::cout << cn.clients[cn.curr_event->ident].respond_msg << std::endl;
+                //std::cout << "client " << cn.curr_event->ident << " write data, size : " << n << ", index : " << cn.clients[cn.curr_event->ident].rs.index << std::endl;
                 if (cn.clients[cn.curr_event->ident].rs.index == cn.clients[cn.curr_event->ident].respond_msg.size())
                 {
                     if (cn.clients[cn.curr_event->ident].keep == 0)
@@ -142,8 +144,8 @@ static void read_data_from_client(Connect& cn)
     if (cn.curr_event->data == 0) // read event 가 계속 발생 (keep-alive 로 열어뒀을때)
         return ;
     char buf[cn.curr_event->data + 1];
-    if (cn.clients[cn.curr_event->ident]._stage == GET_REQUEST)
-        std::cout << "STAGE GET_REQUEST" << std::endl; 
+    //if (cn.clients[cn.curr_event->ident]._stage == GET_REQUEST)
+    //   std::cout << "STAGE GET_REQUEST" << std::endl; 
 
     int n = read(cn.curr_event->ident, buf, cn.curr_event->data);
     if (n <= 0)
@@ -156,7 +158,7 @@ static void read_data_from_client(Connect& cn)
     {
         buf[n] = 0;
         cn.clients[cn.curr_event->ident].request_msg.append(buf, n);
-        std::cout << YLLW "client " << cn.curr_event->ident << " read: " NC << " : " << cn.clients[cn.curr_event->ident].request_msg.size() << std::endl;
+        //std::cout << YLLW "client " << cn.curr_event->ident << " read: " NC << " : " << cn.clients[cn.curr_event->ident].request_msg.size() << std::endl;
     }
 }
 
@@ -166,7 +168,7 @@ static void file_and_pipe_read(Connect& cn)
         return ;
     else if (cn.clients[cn.curr_event->ident]._stage == CGI_READ)
     {
-        std::cout << "STAGE CGI_READ" << std::endl;
+        //std::cout << "STAGE CGI_READ" << std::endl;
         if (cn.clients[cn.curr_event->ident].cgi_pid != 0)
         {
             int status;
@@ -199,7 +201,7 @@ static void file_and_pipe_read(Connect& cn)
     }
     else if (cn.clients[cn.curr_event->ident]._stage == FILE_READ)
     {
-        std::cout << "STAGE FILE_READ" << std::endl;
+        //std::cout << "STAGE FILE_READ" << std::endl;
         char buf[cn.curr_event->data + 1];
 
         int n = read(cn.curr_event->ident, buf, cn.curr_event->data);
@@ -223,10 +225,10 @@ static void file_and_pipe_write(Connect& cn)
 {
     std::string& tmp = cn.clients[cn.clients[cn.curr_event->ident].origin_fd].tmp_buffer;
 
-    if (cn.clients[cn.curr_event->ident]._stage == CGI_WRITE)
-        std::cout << "STAGE CGI_WRITE" << std::endl;
-    else if (cn.clients[cn.curr_event->ident]._stage == FILE_WRITE)
-        std::cout << "STAGE FILE_WRITE" << std::endl;
+    // if (cn.clients[cn.curr_event->ident]._stage == CGI_WRITE)
+    //     std::cout << "STAGE CGI_WRITE" << std::endl;
+    // else if (cn.clients[cn.curr_event->ident]._stage == FILE_WRITE)
+    //     std::cout << "STAGE FILE_WRITE" << std::endl;
     int n = write(cn.curr_event->ident, tmp.c_str(), tmp.size());
     lseek(cn.curr_event->ident, 0, SEEK_SET);
     if (n <= 0)
@@ -255,7 +257,7 @@ static void get_client(Connect& cn)
         std::cerr << "client accept error!" << std::endl;
 		return ;
     }
-    std::cout << BLUE "get client : " NC << client_socket << std::endl;
+    //std::cout << BLUE "get client : " NC << client_socket << std::endl;
     fcntl(client_socket, F_SETFL, O_NONBLOCK);
     change_events(cn.change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     change_events(cn.change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);

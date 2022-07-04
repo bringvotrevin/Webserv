@@ -32,7 +32,7 @@ Cgi::Cgi(Connect& connect, Client& client)
 	__v_envlist[12] = "REQUEST_URI=" + __requested_uri;
 	__v_envlist[13] = "PATH_INFO=" + __requested_uri;
 	__v_envlist[14] = "SCRIPT_FILENAME=" + __requested_uri;
-	__v_envlist[14] = "X-Secret-Header-For-Test=1";
+	__v_envlist[15] = "HTTP_X_SECRET_HEADER_FOR_TEST=1";
 	client.tmp_buffer = __request.body;
 }
 
