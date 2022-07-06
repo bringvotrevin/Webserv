@@ -1,8 +1,7 @@
 # Webserv
 42cursus Webserv team project <br>
 Team member : dim, sujikim, saoh, dokkim <br>
-
-## [Subject]
+<br>
 HTTP server를 C++로 만들어보는 프로젝트 <br>
 
 How to execute: <br>
