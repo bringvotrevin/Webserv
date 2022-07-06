@@ -8,4 +8,4 @@ How to execute: <br>
 ` ./webserv [configuration file] `
 
 자세한 설명은 wiki에.. <br>
-[Webserv Wiki](https://github.com/dimfrom42/Webserv.wiki.git)
+[Webserv Wiki](https://github.com/dimfrom42/Webserv/wiki)
