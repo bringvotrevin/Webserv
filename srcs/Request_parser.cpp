@@ -42,6 +42,11 @@ Location* Request_parser::search_location(std::string str, std::vector<Location>
 
 	while (!location && tmp_str != "/")
 	{
+		if (tmp_str.find("/") == std::string::npos)
+		{
+			request.status_code = 404;
+			return nullptr;
+		}
 		tmp_str = tmp_str.substr(0, tmp_str.rfind("/"));
 		location = search_location_in_list(tmp_str, list);
 	}
@@ -181,7 +186,9 @@ void	Request_parser::m_parse_request_header (Client& client)
 		}
 		request.path = request.url.substr(0,request.url.find("?"));
 		location = search_location(request.path, server->location);
-		__l_line.pop_front();	
+		if (location == nullptr)
+			return ;
+		__l_line.pop_front();
 	}
 	request.location = location;
 
