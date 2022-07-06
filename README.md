@@ -1,8 +1,8 @@
 # Webserv
 42cursus Webserv team project <br>
-Team member : dim, sujikim, saoh, dokkim <br>
-<br>
 HTTP server를 C++로 만들어보는 프로젝트 <br>
+<br>
+Team member : dim, sujikim, saoh, dokkim <br>
 
 How to execute: <br>
 ` ./webserv [configuration file] `
