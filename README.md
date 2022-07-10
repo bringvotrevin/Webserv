@@ -5,7 +5,7 @@ HTTP server를 C++로 만들어보는 프로젝트 <br>
 Team member : dim, sujikim, saoh, dokkim <br>
 
 How to execute: <br>
-` ./webserv [configuration file] `
+` ./webserv [configuration file] ` <br>
 기본 conf file은 /config/basic_test.conf로 되어 있음 <br>
 
 자세한 설명은 wiki에.. <br>
