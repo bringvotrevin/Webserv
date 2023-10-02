@@ -7,7 +7,8 @@ How to execute: <br>
 ` ./webserv [configuration file] ` <br>
 기본 conf file은 /config/basic_test.conf로 되어 있음 <br>
 
-자세한 설명은 wiki에.. <br>
+
+자세한 설명은 wiki에서 계속.. <br>
 [Webserv Wiki](https://github.com/dimfrom42/Webserv/wiki)
 
 
