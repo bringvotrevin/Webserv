@@ -8,7 +8,12 @@ How to execute: <br>
 기본 conf file은 /config/basic_test.conf로 되어 있음 <br>
 
 
-[Requirement]
+### [Mandatory]
+<img src="https://user-images.githubusercontent.com/81025416/177487823-e6fb46c4-54e1-4abb-b812-75a238d6dece.png">
+
+
+
+### [Requirement]
 프로그램은 configuration 파일을 인수로 사용해야 함
 클라이언트와 서버 간의 모든 I/O 작업은 poll()만 사용해야 함(poll이라 칭하지만 그와 동등한 select, epoll, kqueue 사용 가능)
 polling은 읽기 및 쓰기를 동시에 확인해야 함
